@@ -85,6 +85,14 @@ npm run dev
 - `POST /api/v1/weight`
 - `GET /api/v1/weight/history?startDate=2026-01-01&endDate=2026-02-18`
 
+### Reminders
+- `POST /api/v1/reminders`
+- `GET /api/v1/reminders`
+- `GET /api/v1/reminders/:reminderId`
+- `PATCH /api/v1/reminders/:reminderId`
+- `PATCH /api/v1/reminders/:reminderId/status`
+- `DELETE /api/v1/reminders/:reminderId`
+
 ## Example Requests
 
 Register:
@@ -121,3 +129,6 @@ curl -X POST http://localhost:5000/api/v1/logs/meals \
 - Read queries use `.lean()` where applicable.
 - Centralized error handling and request validation are enabled.
 - Macros for meal entries are auto-calculated from food nutrition per `100g`.
+- Reminder types: `breakfast`, `lunch`, `dinner`, `water`, `snack/others`, `workout`.
+- For reminders, `days` uses weekday numbers (`0=Sunday` to `6=Saturday`) and `time` uses `HH:mm`.
+- Water reminders are limited to `5` per user.
