@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema(
       min: 20,
       max: 500,
     },
+    targetWeight: {
+      type: Number,
+      min: 20,
+      max: 500,
+    },
     goal: {
       type: String,
       enum: ["weight_loss", "weight_gain", "maintenance"],
@@ -49,6 +54,11 @@ const userSchema = new mongoose.Schema(
     dailyCalorieTarget: {
       type: Number,
       min: 800,
+      max: 10000,
+    },
+    dailyWaterTarget: {
+      type: Number,
+      min: 500,
       max: 10000,
     },
     role: {

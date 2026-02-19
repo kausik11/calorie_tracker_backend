@@ -62,4 +62,32 @@ const setCalorieGoal = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getMe, updateProfile, setCalorieGoal };
+const setTargets = asyncHandler(async (req, res) => {
+  const updates = {};
+  const allowedFields = ["targetWeight", "dailyWaterTarget", "dailyCalorieTarget"];
+
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  });
+
+  const user = await User.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+    runValidators: true,
+  })
+    .select("-password -refreshTokenHash")
+    .lean();
+
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  res.status(StatusCodes.OK).json({
+    status: "success",
+    message: "Targets updated successfully",
+    data: user,
+  });
+});
+
+module.exports = { getMe, updateProfile, setCalorieGoal, setTargets };
