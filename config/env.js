@@ -15,6 +15,7 @@ const env = {
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   CLOUDINARY_UPLOAD_FOLDER: process.env.CLOUDINARY_UPLOAD_FOLDER || "singhbackend/love-stories",
+  CLOUDINARY_RECIPE_FOLDER: process.env.CLOUDINARY_RECIPE_FOLDER || "singhbackend/recipes",
   BREATH_TEST_TARGET_HOLD_TIME: Number(process.env.BREATH_TEST_TARGET_HOLD_TIME) || 60,
 };
 

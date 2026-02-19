@@ -101,6 +101,13 @@ npm run dev
 - `POST /api/v1/breath-test`
 - `GET /api/v1/breath-test`
 
+### Recipes
+- `POST /api/v1/recipes` (multipart/form-data, image file field: `image`)
+- `GET /api/v1/recipes`
+- `GET /api/v1/recipes/:recipeId`
+- `PATCH /api/v1/recipes/:recipeId` (optional image file field: `image`)
+- `DELETE /api/v1/recipes/:recipeId`
+
 ## Example Requests
 
 Register:
