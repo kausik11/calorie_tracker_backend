@@ -7,6 +7,7 @@ const waterRoutes = require("./waterRoutes");
 const weightRoutes = require("./weightRoutes");
 const reminderRoutes = require("./reminderRoutes");
 const photoAlbumRoutes = require("./photoAlbumRoutes");
+const breathTestRoutes = require("./breathTestRoutes");
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use("/water", waterRoutes);
 router.use("/weight", weightRoutes);
 router.use("/reminders", reminderRoutes);
 router.use("/photoalbum", photoAlbumRoutes);
+router.use("/breath-test", breathTestRoutes);
 
 module.exports = router;

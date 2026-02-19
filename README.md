@@ -97,6 +97,10 @@ npm run dev
 - `POST /api/v1/photoalbum` (multipart/form-data, field name: `image`, optional: `caption`)
 - `GET /api/v1/photoalbum`
 
+### Breath Test
+- `POST /api/v1/breath-test`
+- `GET /api/v1/breath-test`
+
 ## Example Requests
 
 Register:
