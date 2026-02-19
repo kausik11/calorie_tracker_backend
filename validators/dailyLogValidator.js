@@ -1,10 +1,16 @@
 const { body, param, query } = require("express-validator");
 
+const normalizeQuantityUnit = (value) => {
+  if (typeof value !== "string") return value;
+  return value.trim().toLowerCase();
+};
+
 const addMealValidator = [
   body("foodId").isMongoId().withMessage("Valid foodId is required"),
-  body("quantity").isFloat({ min: 1 }).withMessage("Quantity must be a positive number"),
+  body("quantity").isFloat({ gt: 0 }).withMessage("Quantity must be a positive number"),
   body("quantityUnit")
     .optional()
+    .customSanitizer(normalizeQuantityUnit)
     .isIn(["g", "kg", "piece"])
     .withMessage("quantityUnit must be one of: g, kg, piece"),
   body("date")
@@ -17,10 +23,11 @@ const addMealListValidator = [
   body("foods").isArray({ min: 1 }).withMessage("foods must be a non-empty array"),
   body("foods.*.foodId").isMongoId().withMessage("Each food item must include a valid foodId"),
   body("foods.*.quantity")
-    .isFloat({ min: 1 })
+    .isFloat({ gt: 0 })
     .withMessage("Each food item quantity must be a positive number"),
   body("foods.*.quantityUnit")
     .optional()
+    .customSanitizer(normalizeQuantityUnit)
     .isIn(["g", "kg", "piece"])
     .withMessage("Each food item quantityUnit must be one of: g, kg, piece"),
   body("date")
