@@ -9,6 +9,7 @@ const routes = require("./routes");
 const { notFoundHandler } = require("./middleware/notFound");
 const { errorHandler } = require("./middleware/errorHandler");
 const { swaggerDocs, swaggerUi } = require("./config/swagger");
+const connectDB = require("./config/db");
 const env = require("./config/env");
 
 const app = express();
@@ -45,6 +46,15 @@ app.get("/", (req, res) => {
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB(env.MONGO_URI);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
