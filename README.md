@@ -93,6 +93,10 @@ npm run dev
 - `PATCH /api/v1/reminders/:reminderId/status`
 - `DELETE /api/v1/reminders/:reminderId`
 
+### Photo Album
+- `POST /api/v1/photoalbum` (multipart/form-data, field name: `image`, optional: `caption`)
+- `GET /api/v1/photoalbum`
+
 ## Example Requests
 
 Register:
