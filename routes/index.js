@@ -9,6 +9,7 @@ const reminderRoutes = require("./reminderRoutes");
 const photoAlbumRoutes = require("./photoAlbumRoutes");
 const breathTestRoutes = require("./breathTestRoutes");
 const recipeRoutes = require("./recipeRoutes");
+const healthAssessmentRoutes = require("./healthAssessmentRoutes");
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use("/reminders", reminderRoutes);
 router.use("/photoalbum", photoAlbumRoutes);
 router.use("/breath-test", breathTestRoutes);
 router.use("/recipes", recipeRoutes);
+router.use("/health-assessment", healthAssessmentRoutes);
 
 module.exports = router;

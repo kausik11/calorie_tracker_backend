@@ -19,7 +19,9 @@ const router = express.Router();
 
 router.use(protect);
 
+// for single item meal
 router.post("/meals", addMealValidator, validate, addMealToDailyLog);
+//for multiple item meal
 router.post("/meals/bulk", addMealListValidator, validate, addMealListToDailyLog);
 router.delete("/meals/:mealId", removeMealValidator, validate, removeMealFromDailyLog);
 router.get("/today", getTodaySummary);

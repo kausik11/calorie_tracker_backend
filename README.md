@@ -108,6 +108,10 @@ npm run dev
 - `PATCH /api/v1/recipes/:recipeId` (optional image file field: `image`)
 - `DELETE /api/v1/recipes/:recipeId`
 
+### Health Assessment
+- `POST /api/v1/health-assessment`
+- `GET /api/v1/health-assessment`
+
 ## Example Requests
 
 Register:
