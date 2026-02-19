@@ -6,6 +6,31 @@ const asyncHandler = require("../utils/asyncHandler");
 const { calculateMacrosByQuantity } = require("../utils/macroCalculator");
 const { getStartOfDayUTC } = require("../utils/date");
 
+const resolveQuantityInGrams = (food, quantity, quantityUnit = "g") => {
+  const normalizedUnit = String(quantityUnit).toLowerCase();
+
+  if (normalizedUnit === "g") {
+    return quantity;
+  }
+
+  if (normalizedUnit === "kg") {
+    return quantity * 1000;
+  }
+
+  if (normalizedUnit === "piece") {
+    if (!food.pieceWeight || Number(food.pieceWeight) <= 0) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        `Food "${food.name}" does not support piece unit. Set pieceWeight in grams first.`
+      );
+    }
+
+    return quantity * Number(food.pieceWeight);
+  }
+
+  throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid quantityUnit. Use g, kg, or piece.");
+};
+
 const getOrCreateLog = async (userId, date) => {
   const startDate = getStartOfDayUTC(date);
   const existing = await DailyLog.findOne({ user: userId, date: startDate });
@@ -19,7 +44,7 @@ const getOrCreateLog = async (userId, date) => {
 };
 
 const addMealToDailyLog = asyncHandler(async (req, res) => {
-  const { foodId, quantity, date } = req.body;
+  const { foodId, quantity, quantityUnit = "g", date } = req.body;
   const logDate = getStartOfDayUTC(date || new Date());
 
   const food = await Food.findById(foodId).lean();
@@ -27,12 +52,13 @@ const addMealToDailyLog = asyncHandler(async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "Food item not found");
   }
 
-  const macros = calculateMacrosByQuantity(food, Number(quantity));
+  const quantityInGrams = resolveQuantityInGrams(food, Number(quantity), quantityUnit);
+  const macros = calculateMacrosByQuantity(food, quantityInGrams);
   const log = await getOrCreateLog(req.user._id, logDate);
 
   log.meals.push({
     food: food._id,
-    quantity: Number(quantity),
+    quantity: quantityInGrams,
     ...macros,
   });
 
@@ -42,6 +68,51 @@ const addMealToDailyLog = asyncHandler(async (req, res) => {
   res.status(StatusCodes.CREATED).json({
     status: "success",
     message: "Meal added to daily log",
+    data: log,
+  });
+});
+
+const addMealListToDailyLog = asyncHandler(async (req, res) => {
+  const { foods, date } = req.body;
+  const logDate = getStartOfDayUTC(date || new Date());
+
+  const requestedFoodIds = foods.map((entry) => entry.foodId);
+  const uniqueFoodIds = [...new Set(requestedFoodIds)];
+
+  const dbFoods = await Food.find({ _id: { $in: uniqueFoodIds } }).lean();
+  const foodMap = new Map(dbFoods.map((food) => [String(food._id), food]));
+
+  const missingFoodIds = uniqueFoodIds.filter((id) => !foodMap.has(String(id)));
+  if (missingFoodIds.length > 0) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Some food items were not found", {
+      missingFoodIds,
+    });
+  }
+
+  const log = await getOrCreateLog(req.user._id, logDate);
+
+  foods.forEach((entry) => {
+    const food = foodMap.get(String(entry.foodId));
+    const quantityInGrams = resolveQuantityInGrams(
+      food,
+      Number(entry.quantity),
+      entry.quantityUnit || "g"
+    );
+    const macros = calculateMacrosByQuantity(food, quantityInGrams);
+
+    log.meals.push({
+      food: food._id,
+      quantity: quantityInGrams,
+      ...macros,
+    });
+  });
+
+  await log.save();
+  await log.populate("meals.food", "name brand servingSize");
+
+  res.status(StatusCodes.CREATED).json({
+    status: "success",
+    message: "Meal list added to daily log",
     data: log,
   });
 });
@@ -129,6 +200,7 @@ const getDateRangeSummary = asyncHandler(async (req, res) => {
 
 module.exports = {
   addMealToDailyLog,
+  addMealListToDailyLog,
   removeMealFromDailyLog,
   getTodaySummary,
   getDateRangeSummary,

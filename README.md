@@ -122,7 +122,7 @@ Create food:
 curl -X POST http://localhost:5000/api/v1/foods \
   -H "Authorization: Bearer <accessToken>" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Oats","calories":389,"protein":16.9,"carbs":66.3,"fat":6.9,"fiber":10.6,"servingSize":100}'
+  -d '{"name":"Oats","calories":389,"protein":16.9,"carbs":66.3,"fat":6.9,"fiber":10.6,"servingSize":100,"pieceWeight":30}'
 ```
 
 Add meal:
@@ -130,7 +130,7 @@ Add meal:
 curl -X POST http://localhost:5000/api/v1/logs/meals \
   -H "Authorization: Bearer <accessToken>" \
   -H "Content-Type: application/json" \
-  -d '{"foodId":"<foodId>","quantity":150}'
+  -d '{"foodId":"<foodId>","quantity":2,"quantityUnit":"piece"}'
 ```
 
 ## Indexes Added
@@ -144,6 +144,8 @@ curl -X POST http://localhost:5000/api/v1/logs/meals \
 - Read queries use `.lean()` where applicable.
 - Centralized error handling and request validation are enabled.
 - Macros for meal entries are auto-calculated from food nutrition per `100g`.
+- Meal quantity units supported: `g`, `kg`, `piece`.
+- For `piece` unit, define `pieceWeight` (grams per piece) on the food item.
 - Reminder types: `breakfast`, `lunch`, `dinner`, `water`, `snack/others`, `workout`.
 - For reminders, `days` uses weekday numbers (`0=Sunday` to `6=Saturday`) and `time` uses `HH:mm`.
 - Water reminders are limited to `5` per user.

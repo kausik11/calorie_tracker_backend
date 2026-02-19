@@ -12,6 +12,10 @@ const createFoodValidator = [
     .optional()
     .isFloat({ min: 1 })
     .withMessage("Serving size must be greater than 0"),
+  body("pieceWeight")
+    .optional()
+    .isFloat({ gt: 0 })
+    .withMessage("pieceWeight must be greater than 0"),
   body("isVerified").optional().isBoolean().withMessage("isVerified must be true or false"),
 ];
 

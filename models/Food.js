@@ -43,6 +43,10 @@ const foodSchema = new mongoose.Schema(
       default: 100,
       min: 1,
     },
+    pieceWeight: {
+      type: Number,
+      min: 0.0001,
+    },
     isVerified: {
       type: Boolean,
       default: false,
