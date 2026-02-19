@@ -25,10 +25,12 @@ const limiter = rateLimit({
 });
 
 app.use(helmet());
+const allowAllOrigins = env.CORS_ORIGIN === "*";
+
 app.use(
   cors({
-    origin: env.CORS_ORIGIN === "*" ? true : env.CORS_ORIGIN,
-    credentials: true,
+    origin: allowAllOrigins ? "*" : env.CORS_ORIGIN,
+    credentials: allowAllOrigins ? false : true,
   })
 );
 app.use(limiter);
