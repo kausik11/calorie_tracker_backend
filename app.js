@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const routes = require("./routes");
 const { notFoundHandler } = require("./middleware/notFound");
 const { errorHandler } = require("./middleware/errorHandler");
-const { swaggerDocs, swaggerUi } = require("./config/swagger");
+const { swaggerDocs, getSwaggerHtml } = require("./config/swagger");
 const connectDB = require("./config/db");
 const env = require("./config/env");
 
@@ -57,7 +57,17 @@ app.use(async (req, res, next) => {
   }
 });
 
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.get("/api/docs", (req, res) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';"
+  );
+  res.type("html").send(getSwaggerHtml("/api/docs/openapi.json"));
+});
+
+app.get("/api/docs/openapi.json", (req, res) => {
+  res.json(swaggerDocs);
+});
 app.use("/api/v1", routes);
 
 app.use(notFoundHandler);
