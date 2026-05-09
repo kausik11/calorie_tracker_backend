@@ -58,8 +58,34 @@ const createRecipe = asyncHandler(async (req, res) => {
   });
 });
 
+const buildRecipeSearchFilter = (q, baseFilter) => {
+  if (!q) return baseFilter;
+  return { $and: [baseFilter, { $text: { $search: q } }] };
+};
+
+const listPublicRecipes = asyncHandler(async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  const filter = buildRecipeSearchFilter(q, { isPublic: true });
+  const recipes = await Recipe.find(filter)
+    .sort(q ? { score: { $meta: "textScore" } } : { createdAt: -1 })
+    .select(q ? { score: { $meta: "textScore" } } : {})
+    .lean();
+
+  res.status(StatusCodes.OK).json({
+    status: "success",
+    data: recipes,
+  });
+});
+
 const listRecipes = asyncHandler(async (req, res) => {
-  const recipes = await Recipe.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
+  const q = String(req.query.q || "").trim();
+  const ownerFilter = { $or: [{ user: req.user._id }, { isPublic: true }] };
+  const filter = buildRecipeSearchFilter(q, ownerFilter);
+
+  const recipes = await Recipe.find(filter)
+    .sort(q ? { score: { $meta: "textScore" } } : { isPublic: -1, createdAt: -1 })
+    .select(q ? { score: { $meta: "textScore" } } : {})
+    .lean();
 
   res.status(StatusCodes.OK).json({
     status: "success",
@@ -70,7 +96,7 @@ const listRecipes = asyncHandler(async (req, res) => {
 const getRecipeById = asyncHandler(async (req, res) => {
   const recipe = await Recipe.findOne({
     _id: req.params.recipeId,
-    user: req.user._id,
+    $or: [{ user: req.user._id }, { isPublic: true }],
   }).lean();
 
   if (!recipe) {
@@ -140,4 +166,4 @@ const deleteRecipe = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { upload, createRecipe, listRecipes, getRecipeById, updateRecipe, deleteRecipe };
+module.exports = { upload, createRecipe, listPublicRecipes, listRecipes, getRecipeById, updateRecipe, deleteRecipe };

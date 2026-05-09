@@ -3,6 +3,8 @@ const Food = require("../models/Food");
 const ApiError = require("../utils/apiError");
 const asyncHandler = require("../utils/asyncHandler");
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const createFood = asyncHandler(async (req, res) => {
   const food = await Food.create({
     ...req.body,
@@ -20,17 +22,20 @@ const searchFoods = asyncHandler(async (req, res) => {
   const { q, page = 1, limit = 10 } = req.query;
   const numericPage = Number(page);
   const numericLimit = Number(limit);
+  const searchTerm = String(q || "").trim();
 
-  const filter = q
+  const filter = searchTerm
     ? {
-        $text: { $search: q },
+        $or: [
+          { name: { $regex: escapeRegex(searchTerm), $options: "i" } },
+          { brand: { $regex: escapeRegex(searchTerm), $options: "i" } },
+        ],
       }
     : {};
 
   const [foods, total] = await Promise.all([
     Food.find(filter)
-      .sort(q ? { score: { $meta: "textScore" } } : { createdAt: -1 })
-      .select(q ? { score: { $meta: "textScore" } } : {})
+      .sort({ createdAt: -1 })
       .skip((numericPage - 1) * numericLimit)
       .limit(numericLimit)
       .lean(),

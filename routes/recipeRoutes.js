@@ -4,6 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 const {
   upload,
   createRecipe,
+  listPublicRecipes,
   listRecipes,
   getRecipeById,
   updateRecipe,
@@ -31,6 +32,8 @@ const uploadSingleImage = (req, res, next) => {
     next(err);
   });
 };
+
+router.get("/public", listPublicRecipes);
 
 router.use(protect);
 

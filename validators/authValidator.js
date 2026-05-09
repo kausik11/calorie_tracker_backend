@@ -15,4 +15,6 @@ const loginValidator = [
 
 const refreshTokenValidator = [body("refreshToken").notEmpty().withMessage("Refresh token is required")];
 
-module.exports = { registerValidator, loginValidator, refreshTokenValidator };
+const firebaseLoginValidator = [body("idToken").notEmpty().withMessage("Firebase ID token is required")];
+
+module.exports = { registerValidator, loginValidator, firebaseLoginValidator, refreshTokenValidator };

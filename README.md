@@ -6,7 +6,7 @@ Production-ready Node.js + Express + MongoDB backend for a calorie tracker app w
 - Node.js
 - Express.js
 - MongoDB + Mongoose
-- JWT (`15m` access, `7d` refresh)
+- JWT (`15m` access, `30d` refresh by default)
 - `express-validator`
 - `helmet`, `cors`, `express-rate-limit`
 - Swagger docs
@@ -60,6 +60,8 @@ npm run dev
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/refresh`
 - `POST /api/v1/auth/logout`
+- `GET /api/v1/auth/sessions`
+- `DELETE /api/v1/auth/sessions/:sessionId`
 
 ### User
 - `GET /api/v1/users/me`
@@ -147,6 +149,7 @@ curl -X POST http://localhost:5000/api/v1/logs/meals \
 ## Notes
 - Read queries use `.lean()` where applicable.
 - Centralized error handling and request validation are enabled.
+- Auth uses one backend `Session` document per login/device. Store the `refreshToken` on the mobile app in secure persistent storage, refresh access tokens with `/api/v1/auth/refresh`, and only call `/api/v1/auth/logout` when the user explicitly logs out.
 - Macros for meal entries are auto-calculated from food nutrition per `100g`.
 - Meal quantity units supported: `g`, `kg`, `piece`.
 - For `piece` unit, define `pieceWeight` (grams per piece) on the food item.

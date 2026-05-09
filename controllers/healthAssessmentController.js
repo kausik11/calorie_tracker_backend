@@ -4,6 +4,13 @@ const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/apiError");
 
+const ACTIVITY_FACTORS = {
+  low: 1.2,
+  moderate: 1.375,
+  high: 1.55,
+  very_high: 1.725,
+};
+
 const calculateAge = (dateOfBirth) => {
   const dob = new Date(dateOfBirth);
   const today = new Date();
@@ -19,45 +26,102 @@ const calculateAge = (dateOfBirth) => {
   return age;
 };
 
-const convertHeightToCm = ({ heightUnit, heightCm, heightFt, heightIn }) => {
+const roundToTwo = (value) => Number(value.toFixed(2));
+
+const getNumericInput = (value) => Number(String(value).trim());
+
+const convertHeightToCm = ({ height, heightUnit, heightFt, heightIn }) => {
   if (heightUnit === "cm") {
-    return Number(heightCm);
+    return getNumericInput(height);
   }
 
-  // 1 foot = 30.48 cm and 1 inch = 2.54 cm.
-  return Number(heightFt) * 30.48 + Number(heightIn) * 2.54;
+  if (heightFt !== undefined || heightIn !== undefined) {
+    return Number(heightFt || 0) * 30.48 + Number(heightIn || 0) * 2.54;
+  }
+
+  const numericHeight = getNumericInput(height);
+  const feet = Math.trunc(numericHeight);
+  const inchText = String(height).trim().split(".")[1] || "0";
+  const inches = Number(inchText.length === 1 ? inchText : inchText.slice(0, 2));
+
+  return feet * 30.48 + inches * 2.54;
+};
+
+const convertWeightToKg = ({ weight, weightUnit }) => {
+  const numericWeight = getNumericInput(weight);
+  return weightUnit === "lb" ? numericWeight * 0.45359237 : numericWeight;
+};
+
+const calculateDailyCalorieTarget = ({ sex, currentWeightKg, heightCm, age, activityLevel, direction }) => {
+  const base =
+    10 * currentWeightKg + 6.25 * heightCm - 5 * age + (sex === "male" ? 5 : -161);
+  const maintenance = base * ACTIVITY_FACTORS[activityLevel];
+  const adjusted =
+    maintenance + (direction === "lose_weight" ? -500 : direction === "gain_weight" ? 500 : 0);
+
+  return Math.min(Math.max(Math.round(adjusted), 800), 10000);
+};
+
+const mapDirectionToUserGoal = (direction) => {
+  if (direction === "lose_weight") {
+    return "weight_loss";
+  }
+
+  if (direction === "gain_weight") {
+    return "weight_gain";
+  }
+
+  return "maintenance";
 };
 
 const upsertHealthAssessment = asyncHandler(async (req, res) => {
   const {
-    hereTo,
-    mainHealthGoal,
-    healthGoalOption,
+    firstName,
+    direction,
+    mainGoal,
+    challenges,
     heightUnit,
-    heightCm,
     heightFt,
     heightIn,
-    currentWeightKg,
     dateOfBirth,
-    weightGoalKg,
     sex,
+    activityLevel,
   } = req.body;
 
-  const normalizedHeightCm = Number(convertHeightToCm({ heightUnit, heightCm, heightFt, heightIn }).toFixed(2));
+  const height = req.body.height ?? req.body.heightCm;
+  const weight = req.body.weight ?? req.body.currentWeightKg;
+  const weightUnit = req.body.weightUnit ?? "kg";
+  const normalizedHeightCm = roundToTwo(
+    convertHeightToCm({ height, heightUnit, heightFt, heightIn })
+  );
+  const normalizedWeightKg = roundToTwo(convertWeightToKg({ weight, weightUnit }));
   const age = calculateAge(dateOfBirth);
+  const dailyCalorieTarget = calculateDailyCalorieTarget({
+    sex,
+    currentWeightKg: normalizedWeightKg,
+    heightCm: normalizedHeightCm,
+    age,
+    activityLevel,
+    direction,
+  });
 
   const payload = {
     user: req.user._id,
-    hereTo,
-    mainHealthGoal,
-    healthGoalOption,
+    firstName,
+    direction,
+    mainGoal,
+    challenges,
     heightUnit,
+    height: String(height).trim(),
     heightCm: normalizedHeightCm,
-    currentWeightKg: Number(currentWeightKg),
+    weightUnit,
+    weight: String(weight).trim(),
+    currentWeightKg: normalizedWeightKg,
     dateOfBirth: new Date(dateOfBirth),
     age,
-    weightGoalKg: Number(weightGoalKg),
     sex,
+    activityLevel,
+    dailyCalorieTarget,
   };
 
   const assessment = await HealthAssessment.findOneAndUpdate({ user: req.user._id }, payload, {
@@ -70,11 +134,13 @@ const upsertHealthAssessment = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
+      ...(firstName ? { name: firstName } : {}),
       age,
       gender: sex,
       height: normalizedHeightCm,
-      weight: Number(currentWeightKg),
-      targetWeight: Number(weightGoalKg),
+      weight: normalizedWeightKg,
+      goal: mapDirectionToUserGoal(direction),
+      dailyCalorieTarget,
     },
     { runValidators: true }
   );

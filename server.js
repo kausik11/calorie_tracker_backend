@@ -6,7 +6,7 @@ const PORT = env.PORT;
 
 const startServer = async () => {
   try {
-    await connectDB(env.MONGO_URI);
+    await connectDB(env.MONGO_URI, { dnsServers: env.MONGO_DNS_SERVERS });
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });

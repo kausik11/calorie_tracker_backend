@@ -52,6 +52,7 @@ const createRecipeValidator = [
   body("serves").isInt({ min: 1, max: 100 }).withMessage("serves must be between 1 and 100"),
   body("prepTime").isFloat({ min: 0 }).withMessage("prepTime must be a non-negative number"),
   body("cookTime").isFloat({ min: 0 }).withMessage("cookTime must be a non-negative number"),
+  body("imageUrl").optional({ values: "falsy" }).trim().isURL().withMessage("imageUrl must be a URL"),
 ];
 
 const updateRecipeValidator = [

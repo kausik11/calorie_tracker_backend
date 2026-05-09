@@ -1,14 +1,24 @@
 const dotenv = require("dotenv");
-dotenv.config();
+const path = require("path");
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const env = {
   NODE_ENV: process.env.NODE_ENV || "development",
-  PORT: Number(process.env.PORT) || 5000,
+  PORT: Number(process.env.PORT) || 6000,
   MONGO_URI: process.env.MONGO_URI,
+  MONGO_DNS_SERVERS: process.env.MONGO_DNS_SERVERS,
+  FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+  FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
+  FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_WEB_APP_ID: process.env.FIREBASE_WEB_APP_ID,
+  ADMIN_EMAILS: process.env.ADMIN_EMAILS || "",
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
-  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
   CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
   RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 300,
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,

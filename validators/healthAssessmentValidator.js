@@ -1,14 +1,26 @@
 const { body } = require("express-validator");
 
+const CHALLENGE_OPTIONS = [
+  "Lack of support",
+  "Staying motivated",
+  "Lack of knowledge",
+  "Planning meals",
+  "Partner or family diets",
+  "Busy schedule",
+  "Emotional eating",
+];
+
 const normalizeText = (value) => {
   if (typeof value !== "string") return value;
   return value.trim().toLowerCase().replace(/\s+/g, "_");
 };
 
-const normalizeHereTo = (value) => {
+const normalizeDirection = (value) => {
   const normalized = normalizeText(value);
   const map = {
     lose_weight: "lose_weight",
+    gain_weight: "gain_weight",
+    gain_my_weight: "gain_weight",
     maintain_my_weight: "maintain_weight",
     maintain_weight: "maintain_weight",
     work_that_out: "work_that_out",
@@ -16,22 +28,31 @@ const normalizeHereTo = (value) => {
   return map[normalized] || normalized;
 };
 
-const normalizeMainHealthGoal = (value) => {
+const normalizeMainGoal = (value) => {
   const normalized = normalizeText(value);
   const map = {
-    understand_my_food_intake: "understand_food_intake",
-    understand_food_intake: "understand_food_intake",
-    manage_a_medical_condition: "manage_medical_condition",
-    manage_medical_condition: "manage_medical_condition",
-    improve_my_overallhealth: "improve_overall_health",
-    improve_my_overall_health: "improve_overall_health",
-    improve_overall_health: "improve_overall_health",
-    improve_my_emotional_wellbing: "improve_emotional_wellbeing",
-    improve_my_emotional_wellbeing: "improve_emotional_wellbeing",
+    understand_food: "understand_food",
+    understand_my_food_intake: "understand_food",
+    understand_food_intake: "understand_food",
+    manage_condition: "manage_condition",
+    manage_a_medical_condition: "manage_condition",
+    manage_medical_condition: "manage_condition",
+    improve_health: "improve_health",
+    improve_my_overall_health: "improve_health",
+    improve_overall_health: "improve_health",
     improve_emotional_wellbeing: "improve_emotional_wellbeing",
+    improve_my_emotional_wellbeing: "improve_emotional_wellbeing",
     other: "other",
   };
   return map[normalized] || normalized;
+};
+
+const normalizeHeightUnit = (value) => {
+  if (value === "ft_in" || value === "ftin" || value === "feet_inches") {
+    return "ft/in";
+  }
+
+  return value;
 };
 
 const calculateAge = (dateOfBirth) => {
@@ -49,59 +70,55 @@ const calculateAge = (dateOfBirth) => {
   return age;
 };
 
-const minWeightByAge = (age) => {
-  if (age <= 12) return 20;
-  if (age <= 17) return 30;
-  if (age <= 64) return 35;
-  return 32;
-};
-
 const createHealthAssessmentValidator = [
-  body("hereTo")
-    .customSanitizer(normalizeHereTo)
-    .isIn(["lose_weight", "maintain_weight", "work_that_out"])
-    .withMessage("hereTo must be lose_weight, maintain_weight, or work_that_out"),
-  body("mainHealthGoal")
-    .customSanitizer(normalizeMainHealthGoal)
+  body("firstName")
+    .optional({ values: "falsy" })
+    .trim()
+    .isLength({ max: 40 })
+    .withMessage("firstName must be 40 characters or fewer"),
+  body("direction")
+    .customSanitizer((value, { req }) => normalizeDirection(value ?? req.body.hereTo))
+    .isIn(["lose_weight", "maintain_weight", "gain_weight", "work_that_out"])
+    .withMessage("direction must be lose_weight, maintain_weight, gain_weight, or work_that_out"),
+  body("mainGoal")
+    .customSanitizer((value, { req }) => normalizeMainGoal(value ?? req.body.mainHealthGoal))
     .isIn([
-      "understand_food_intake",
-      "manage_medical_condition",
-      "improve_overall_health",
+      "understand_food",
+      "manage_condition",
+      "improve_health",
       "improve_emotional_wellbeing",
       "other",
     ])
     .withMessage(
-      "mainHealthGoal must be understand_food_intake, manage_medical_condition, improve_overall_health, improve_emotional_wellbeing, or other"
+      "mainGoal must be understand_food, manage_condition, improve_health, improve_emotional_wellbeing, or other"
     ),
-  body("healthGoalOption")
-    .isInt({ min: 1, max: 4 })
-    .withMessage("healthGoalOption must be an integer from 1 to 4"),
-  body("heightUnit").isIn(["cm", "ft_in"]).withMessage("heightUnit must be cm or ft_in"),
-  body("heightCm").optional().isFloat({ min: 30, max: 300 }).withMessage("heightCm must be 30 to 300"),
-  body("heightFt").optional().isInt({ min: 1, max: 9 }).withMessage("heightFt must be between 1 and 9"),
-  body("heightIn")
-    .optional()
-    .isFloat({ min: 0, max: 11.99 })
-    .withMessage("heightIn must be between 0 and 11.99"),
-  body()
-    .custom((payload) => {
-      if (payload.heightUnit === "cm" && payload.heightCm === undefined) {
-        throw new Error("heightCm is required when heightUnit is cm");
-      }
-
-      if (
-        payload.heightUnit === "ft_in" &&
-        (payload.heightFt === undefined || payload.heightIn === undefined)
-      ) {
-        throw new Error("heightFt and heightIn are required when heightUnit is ft_in");
-      }
-
-      return true;
-    })
-    .withMessage("Invalid height payload"),
-  body("currentWeightKg")
-    .isFloat({ min: 20, max: 500 })
-    .withMessage("currentWeightKg must be between 20 and 500"),
+  body("challenges")
+    .isArray({ min: 1, max: 3 })
+    .withMessage("challenges must include 1 to 3 selected options")
+    .custom((value) => value.every((item) => CHALLENGE_OPTIONS.includes(item)))
+    .withMessage("challenges contains an unsupported option"),
+  body("heightUnit")
+    .customSanitizer(normalizeHeightUnit)
+    .isIn(["cm", "ft/in"])
+    .withMessage("heightUnit must be cm or ft/in"),
+  body("height")
+    .customSanitizer((value, { req }) => value ?? req.body.heightCm)
+    .custom((value, { req }) => value !== undefined || req.body.heightCm !== undefined)
+    .withMessage("height is required")
+    .bail()
+    .custom((value) => Number.isFinite(Number(String(value).trim())) && Number(String(value).trim()) > 0)
+    .withMessage("height must be a positive number"),
+  body("weightUnit")
+    .customSanitizer((value) => value ?? "kg")
+    .isIn(["kg", "lb"])
+    .withMessage("weightUnit must be kg or lb"),
+  body("weight")
+    .customSanitizer((value, { req }) => value ?? req.body.currentWeightKg)
+    .custom((value, { req }) => value !== undefined || req.body.currentWeightKg !== undefined)
+    .withMessage("weight is required")
+    .bail()
+    .custom((value) => Number.isFinite(Number(String(value).trim())) && Number(String(value).trim()) > 0)
+    .withMessage("weight must be a positive number"),
   body("dateOfBirth")
     .isISO8601()
     .withMessage("dateOfBirth must be a valid date")
@@ -113,24 +130,16 @@ const createHealthAssessmentValidator = [
       }
 
       const age = calculateAge(dob);
-      if (age < 1 || age > 120) {
-        throw new Error("dateOfBirth produces an invalid age");
+      if (age < 13 || age > 120) {
+        throw new Error("dateOfBirth must produce an age between 13 and 120");
       }
 
       return true;
     }),
-  body("weightGoalKg")
-    .isFloat({ min: 20, max: 500 })
-    .withMessage("weightGoalKg must be between 20 and 500")
-    .custom((value, { req }) => {
-      const age = calculateAge(req.body.dateOfBirth);
-      const minimum = minWeightByAge(age);
-      if (Number(value) < minimum) {
-        throw new Error(`weightGoalKg cannot be below ${minimum}kg for age ${age}`);
-      }
-      return true;
-    }),
-  body("sex").isIn(["male", "female", "other"]).withMessage("sex must be male, female, or other"),
+  body("sex").isIn(["male", "female"]).withMessage("sex must be male or female"),
+  body("activityLevel")
+    .isIn(["low", "moderate", "high", "very_high"])
+    .withMessage("activityLevel must be low, moderate, high, or very_high"),
 ];
 
 module.exports = { createHealthAssessmentValidator };

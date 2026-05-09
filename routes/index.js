@@ -10,8 +10,16 @@ const photoAlbumRoutes = require("./photoAlbumRoutes");
 const breathTestRoutes = require("./breathTestRoutes");
 const recipeRoutes = require("./recipeRoutes");
 const healthAssessmentRoutes = require("./healthAssessmentRoutes");
+const adminRoutes = require("./adminRoutes");
 
 const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "DailyBite API is running",
+  });
+});
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
@@ -24,5 +32,6 @@ router.use("/photoalbum", photoAlbumRoutes);
 router.use("/breath-test", breathTestRoutes);
 router.use("/recipes", recipeRoutes);
 router.use("/health-assessment", healthAssessmentRoutes);
+router.use("/admin", adminRoutes);
 
 module.exports = router;

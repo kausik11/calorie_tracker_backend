@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const helmet = require("helmet");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
@@ -25,7 +26,11 @@ const limiter = rateLimit({
   },
 });
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 const allowAllOrigins = env.CORS_ORIGIN === "*";
 
 app.use(
@@ -50,7 +55,7 @@ app.get("/health", (req, res) => {
 
 app.use(async (req, res, next) => {
   try {
-    await connectDB(env.MONGO_URI);
+    await connectDB(env.MONGO_URI, { dnsServers: env.MONGO_DNS_SERVERS });
     next();
   } catch (error) {
     next(error);
@@ -68,6 +73,18 @@ app.get("/api/docs", (req, res) => {
 app.get("/api/docs/openapi.json", (req, res) => {
   res.json(swaggerDocs);
 });
+
+app.use(
+  "/admin",
+  (req, res, next) => {
+      res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://www.googleapis.com/identitytoolkit https://accounts.google.com https://*.googleapis.com; frame-src 'self' https://accounts.google.com https://*.firebaseapp.com https://*.google.com; img-src 'self' data: https:; font-src 'self';"
+      );
+    next();
+  },
+  express.static(path.join(__dirname, "public/admin"))
+);
 app.use("/api/v1", routes);
 
 app.use(notFoundHandler);

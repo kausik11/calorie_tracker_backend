@@ -12,3 +12,4 @@ fabric.log
 node_modules/
 node_modules/
 .env
+.env.example

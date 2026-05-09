@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DailyBite Admin</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">DailyBite</p>
+          <h1>Admin</h1>
+        </div>
+        <div class="auth-actions">
+          <span id="adminEmail" class="admin-email"></span>
+          <button id="signInButton" type="button">Sign in with Google</button>
+          <button id="signOutButton" type="button" class="secondary hidden">Sign out</button>
+        </div>
+      </header>
+
+      <section id="statusPanel" class="notice">Sign in with an authorized Firebase admin account.</section>
+
+      <section id="dashboard" class="hidden">
+        <div id="summaryGrid" class="summary-grid"></div>
+
+        <section class="catalog-panel">
+          <div class="panel-head">
+            <h2>Catalog</h2>
+            <button id="refreshCatalogButton" type="button" class="icon-button">Refresh catalog</button>
+          </div>
+          <div class="catalog-grid">
+            <form id="foodForm" class="catalog-form">
+              <h3>Add food</h3>
+              <div class="form-grid">
+                <input name="name" placeholder="Food name" required />
+                <input name="brand" placeholder="Brand optional" />
+                <input name="calories" type="number" min="0" step="0.01" placeholder="Calories per 100g" required />
+                <input name="protein" type="number" min="0" step="0.01" placeholder="Protein" required />
+                <input name="carbs" type="number" min="0" step="0.01" placeholder="Carbs" required />
+                <input name="fat" type="number" min="0" step="0.01" placeholder="Fat" required />
+                <input name="fiber" type="number" min="0" step="0.01" placeholder="Fiber optional" />
+                <input name="servingSize" type="number" min="1" step="0.01" placeholder="Serving size g" />
+                <input name="pieceWeight" type="number" min="0.0001" step="0.01" placeholder="Piece weight optional" />
+              </div>
+              <button type="submit">Add food</button>
+            </form>
+
+            <form id="recipeForm" class="catalog-form">
+              <h3>Add recipe</h3>
+              <div class="form-grid">
+                <input name="title" placeholder="Recipe title" required />
+                <input name="serves" type="number" min="1" max="100" placeholder="Serves" required />
+                <input name="prepTime" type="number" min="0" step="1" placeholder="Prep minutes" required />
+                <input name="cookTime" type="number" min="0" step="1" placeholder="Cook minutes" required />
+                <input name="imageUrl" placeholder="Image URL optional" />
+                <textarea name="ingredients" placeholder="Ingredients, one per line" required></textarea>
+                <textarea name="directions" placeholder="Directions, one step per line" required></textarea>
+              </div>
+              <button type="submit">Add recipe</button>
+            </form>
+          </div>
+          <div class="catalog-list-grid">
+            <div>
+              <h3>Foods users can select</h3>
+              <div id="foodCatalogList" class="catalog-list"></div>
+            </div>
+            <div>
+              <h3>Recipes users can select</h3>
+              <div id="recipeCatalogList" class="catalog-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace">
+          <aside class="client-list-panel">
+            <div class="panel-head">
+              <h2>Clients</h2>
+              <button id="refreshButton" type="button" class="icon-button" title="Refresh">Refresh</button>
+            </div>
+            <input id="searchInput" type="search" placeholder="Search name or email" />
+            <div id="clientList" class="client-list"></div>
+          </aside>
+
+          <section class="details-panel">
+            <div id="emptyState" class="empty-state">Select a client to view, update, or delete their data.</div>
+            <div id="clientDetails" class="hidden"></div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="/admin/app.js"></script>
+  </body>
+</html>

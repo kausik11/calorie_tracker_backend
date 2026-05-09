@@ -52,18 +52,25 @@ const recipeSchema = new mongoose.Schema(
     },
     imageUrl: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     imagePublicId: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
+    },
+    isPublic: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   { timestamps: true }
 );
 
 recipeSchema.index({ user: 1, createdAt: -1 });
+recipeSchema.index({ isPublic: 1, createdAt: -1 });
+recipeSchema.index({ title: "text", ingredients: "text" });
 
 module.exports = mongoose.model("Recipe", recipeSchema);
