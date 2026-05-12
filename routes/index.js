@@ -1,0 +1,39 @@
+const express = require("express");
+const authRoutes = require("./authRoutes");
+const userRoutes = require("./userRoutes");
+const foodRoutes = require("./foodRoutes");
+const dailyLogRoutes = require("./dailyLogRoutes");
+const waterRoutes = require("./waterRoutes");
+const weightRoutes = require("./weightRoutes");
+const reminderRoutes = require("./reminderRoutes");
+const photoAlbumRoutes = require("./photoAlbumRoutes");
+const breathTestRoutes = require("./breathTestRoutes");
+const recipeRoutes = require("./recipeRoutes");
+const healthAssessmentRoutes = require("./healthAssessmentRoutes");
+const mealEntryRoutes = require("./mealEntryRoutes");
+const reportRoutes = require("./reportRoutes");
+
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "DailyBite API is running",
+  });
+});
+
+router.use("/auth", authRoutes);
+router.use("/users", userRoutes);
+router.use("/foods", foodRoutes);
+router.use("/logs", dailyLogRoutes);
+router.use("/water", waterRoutes);
+router.use("/weight", weightRoutes);
+router.use("/reminders", reminderRoutes);
+router.use("/photoalbum", photoAlbumRoutes);
+router.use("/breath-test", breathTestRoutes);
+router.use("/recipes", recipeRoutes);
+router.use("/health-assessment", healthAssessmentRoutes);
+router.use("/meal-entries", mealEntryRoutes);
+router.use("/report", reportRoutes);
+
+module.exports = router;
